@@ -2,8 +2,8 @@ name: Build and deploy Rmd to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ]       # runs when you push to main
-  workflow_dispatch:            # lets you run it manually from Actions tab
+    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -18,40 +18,32 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup R
-        uses: r-lib/actions/setup-r@v2
-
-      - name: Setup Pandoc
-        uses: r-lib/actions/setup-pandoc@v2
-
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-pandoc@v2
       - name: Install R packages
-        run: |
-          Rscript -e 'install.packages(c("rmarkdown","postcards"), repos="https://cloud.r-project.org")'
+        run: Rscript -e 'install.packages(c("rmarkdown","postcards"), repos="https://cloud.r-project.org")'
 
-      - name: Render index.Rmd to dist/index.html
+      - name: Render index.Rmd
         run: |
           mkdir -p dist
           Rscript -e 'rmarkdown::render("index.Rmd", output_file = "index.html", output_dir = "dist")'
-          # Copy any assets your page references:
-          [ -f "IMG_1104.JPG" ] && cp IMG_1104.JPG dist/
-          [ -d "img" ] && cp -R img dist/
-          [ -d "HW1" ] && cp -R HW1 dist/
+          # safely copy assets only if they exist
+          if [ -f "IMG_1104.JPG" ]; then cp IMG_1104.JPG dist/; fi
+          if [ -d "img" ]; then cp -R img dist/; fi
+          if [ -d "HW1" ]; then cp -R HW1 dist/; fi
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
-    runs-on: ubuntu-latest
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
+
