@@ -3,7 +3,7 @@ title: "Anish Ravindran"
 image: "IMG_1104.JPG"
 links:
   - text: "GitHub"
-href: "https://github.com/AnishRavi5"
+    href: "https://github.com/AnishRavi5"
 output: postcards::trestles
 date: ""
 ---
@@ -21,6 +21,3 @@ date: ""
   ```{r, echo=FALSE}
 Sys.time()
 ```
-
-rmarkdown::render("HW1.Rmd", output_file = "index.html")
-
